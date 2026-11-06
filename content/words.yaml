@@ -1,0 +1,413 @@
+# Türkmek – A1-Wortliste, erste Runde
+#
+# id    ASCII-Kennung (Dateiname, Callback-Daten) – muss zu turkmek/icons.py passen
+# tr    türkische Schreibweise
+# de    deutsche Bedeutung
+# pos   Wortart
+# example  Beispielsatz türkisch + deutsch
+
+# --- Haushalt -------------------------------------------------------------
+- id: kapi
+  tr: kapı
+  de: die Tür
+  pos: noun
+  example:
+    tr: Kapıyı kapatır mısın?
+    de: Machst du die Tür zu?
+
+- id: pencere
+  tr: pencere
+  de: das Fenster
+  pos: noun
+  example:
+    tr: Pencere açık.
+    de: Das Fenster ist offen.
+
+- id: masa
+  tr: masa
+  de: der Tisch
+  pos: noun
+  example:
+    tr: Kitap masada.
+    de: Das Buch ist auf dem Tisch.
+
+- id: sandalye
+  tr: sandalye
+  de: der Stuhl
+  pos: noun
+  example:
+    tr: Sandalye çok rahat.
+    de: Der Stuhl ist sehr bequem.
+
+- id: yatak
+  tr: yatak
+  de: das Bett
+  pos: noun
+  example:
+    tr: Yatak büyük.
+    de: Das Bett ist groß.
+
+- id: kitap
+  tr: kitap
+  de: das Buch
+  pos: noun
+  example:
+    tr: Bu kitap güzel.
+    de: Dieses Buch ist schön.
+
+- id: kalem
+  tr: kalem
+  de: der Stift
+  pos: noun
+  example:
+    tr: Kalemim nerede?
+    de: Wo ist mein Stift?
+
+- id: anahtar
+  tr: anahtar
+  de: der Schlüssel
+  pos: noun
+  example:
+    tr: Anahtar cebimde.
+    de: Der Schlüssel ist in meiner Tasche.
+
+- id: saat
+  tr: saat
+  de: die Uhr
+  pos: noun
+  example:
+    tr: Saat kaç?
+    de: Wie viel Uhr ist es?
+
+- id: bardak
+  tr: bardak
+  de: das Glas
+  pos: noun
+  example:
+    tr: Bir bardak su lütfen.
+    de: Ein Glas Wasser, bitte.
+
+- id: tabak
+  tr: tabak
+  de: der Teller
+  pos: noun
+  example:
+    tr: Tabak temiz.
+    de: Der Teller ist sauber.
+
+- id: kasik
+  tr: kaşık
+  de: der Löffel
+  pos: noun
+  example:
+    tr: Kaşık nerede?
+    de: Wo ist der Löffel?
+
+- id: catal
+  tr: çatal
+  de: die Gabel
+  pos: noun
+  example:
+    tr: Çatal masada.
+    de: Die Gabel ist auf dem Tisch.
+
+- id: bicak
+  tr: bıçak
+  de: das Messer
+  pos: noun
+  example:
+    tr: Bıçak keskin.
+    de: Das Messer ist scharf.
+
+# --- Essen und Trinken ----------------------------------------------------
+- id: ekmek
+  tr: ekmek
+  de: das Brot
+  pos: noun
+  example:
+    tr: Ekmek taze.
+    de: Das Brot ist frisch.
+
+- id: elma
+  tr: elma
+  de: der Apfel
+  pos: noun
+  example:
+    tr: Elma kırmızı.
+    de: Der Apfel ist rot.
+
+- id: muz
+  tr: muz
+  de: die Banane
+  pos: noun
+  example:
+    tr: Muz sarı.
+    de: Die Banane ist gelb.
+
+- id: portakal
+  tr: portakal
+  de: die Orange
+  pos: noun
+  example:
+    tr: Portakal tatlı.
+    de: Die Orange ist süß.
+
+- id: domates
+  tr: domates
+  de: die Tomate
+  pos: noun
+  example:
+    tr: Domates kırmızı.
+    de: Die Tomate ist rot.
+
+- id: patates
+  tr: patates
+  de: die Kartoffel
+  pos: noun
+  example:
+    tr: Patates ucuz.
+    de: Die Kartoffel ist billig.
+
+- id: peynir
+  tr: peynir
+  de: der Käse
+  pos: noun
+  example:
+    tr: Peynir beyaz.
+    de: Der Käse ist weiß.
+
+- id: yumurta
+  tr: yumurta
+  de: das Ei
+  pos: noun
+  example:
+    tr: İki yumurta istiyorum.
+    de: Ich möchte zwei Eier.
+
+- id: sut
+  tr: süt
+  de: die Milch
+  pos: noun
+  example:
+    tr: Süt soğuk.
+    de: Die Milch ist kalt.
+
+- id: su
+  tr: su
+  de: das Wasser
+  pos: noun
+  example:
+    tr: Su içiyorum.
+    de: Ich trinke Wasser.
+
+- id: cay
+  tr: çay
+  de: der Tee
+  pos: noun
+  example:
+    tr: Çay sıcak.
+    de: Der Tee ist heiß.
+
+- id: kahve
+  tr: kahve
+  de: der Kaffee
+  pos: noun
+  example:
+    tr: Kahve içer misin?
+    de: Trinkst du Kaffee?
+
+- id: seker
+  tr: şeker
+  de: der Zucker
+  pos: noun
+  example:
+    tr: Şeker var mı?
+    de: Gibt es Zucker?
+
+- id: tuz
+  tr: tuz
+  de: das Salz
+  pos: noun
+  example:
+    tr: Tuzu uzatır mısın?
+    de: Reichst du mir das Salz?
+
+# --- Tiere ----------------------------------------------------------------
+- id: kedi
+  tr: kedi
+  de: die Katze
+  pos: noun
+  example:
+    tr: Kedi uyuyor.
+    de: Die Katze schläft.
+
+- id: kopek
+  tr: köpek
+  de: der Hund
+  pos: noun
+  example:
+    tr: Köpek havlıyor.
+    de: Der Hund bellt.
+
+- id: kus
+  tr: kuş
+  de: der Vogel
+  pos: noun
+  example:
+    tr: Kuş uçuyor.
+    de: Der Vogel fliegt.
+
+- id: balik
+  tr: balık
+  de: der Fisch
+  pos: noun
+  example:
+    tr: Balık yüzüyor.
+    de: Der Fisch schwimmt.
+
+- id: at
+  tr: at
+  de: das Pferd
+  pos: noun
+  example:
+    tr: At hızlı koşuyor.
+    de: Das Pferd läuft schnell.
+
+- id: inek
+  tr: inek
+  de: die Kuh
+  pos: noun
+  example:
+    tr: İnek süt veriyor.
+    de: Die Kuh gibt Milch.
+
+# --- Natur ----------------------------------------------------------------
+- id: agac
+  tr: ağaç
+  de: der Baum
+  pos: noun
+  example:
+    tr: Ağaç yeşil.
+    de: Der Baum ist grün.
+
+- id: cicek
+  tr: çiçek
+  de: die Blume
+  pos: noun
+  example:
+    tr: Çiçek güzel.
+    de: Die Blume ist schön.
+
+- id: gunes
+  tr: güneş
+  de: die Sonne
+  pos: noun
+  example:
+    tr: Güneş parlıyor.
+    de: Die Sonne scheint.
+
+- id: ay
+  tr: ay
+  de: der Mond
+  pos: noun
+  example:
+    tr: Ay çok parlak.
+    de: Der Mond ist sehr hell.
+
+- id: yildiz
+  tr: yıldız
+  de: der Stern
+  pos: noun
+  example:
+    tr: Yıldız parlıyor.
+    de: Der Stern leuchtet.
+
+- id: yagmur
+  tr: yağmur
+  de: der Regen
+  pos: noun
+  example:
+    tr: Bugün yağmur var.
+    de: Heute gibt es Regen.
+
+- id: kar
+  tr: kar
+  de: der Schnee
+  pos: noun
+  example:
+    tr: Kar yağıyor.
+    de: Es schneit.
+
+- id: bulut
+  tr: bulut
+  de: die Wolke
+  pos: noun
+  example:
+    tr: Bulutlar gri.
+    de: Die Wolken sind grau.
+
+# --- Gebäude --------------------------------------------------------------
+- id: ev
+  tr: ev
+  de: das Haus
+  pos: noun
+  example:
+    tr: Ev küçük.
+    de: Das Haus ist klein.
+
+- id: okul
+  tr: okul
+  de: die Schule
+  pos: noun
+  example:
+    tr: Okul yakın.
+    de: Die Schule ist nah.
+
+# --- Fahrzeuge ------------------------------------------------------------
+- id: araba
+  tr: araba
+  de: das Auto
+  pos: noun
+  example:
+    tr: Araba kırmızı.
+    de: Das Auto ist rot.
+
+- id: bisiklet
+  tr: bisiklet
+  de: das Fahrrad
+  pos: noun
+  example:
+    tr: Bisikletim yeni.
+    de: Mein Fahrrad ist neu.
+
+- id: otobus
+  tr: otobüs
+  de: der Bus
+  pos: noun
+  example:
+    tr: Otobüs geliyor.
+    de: Der Bus kommt.
+
+- id: ucak
+  tr: uçak
+  de: das Flugzeug
+  pos: noun
+  example:
+    tr: Uçak yüksek uçuyor.
+    de: Das Flugzeug fliegt hoch.
+
+- id: tren
+  tr: tren
+  de: der Zug
+  pos: noun
+  example:
+    tr: Tren hızlı.
+    de: Der Zug ist schnell.
+
+- id: gemi
+  tr: gemi
+  de: das Schiff
+  pos: noun
+  example:
+    tr: Gemi denizde.
+    de: Das Schiff ist auf dem Meer.
