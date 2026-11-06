@@ -67,6 +67,14 @@ class Store:
         self.conn = sqlite3.connect(str(path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        # Der Bot und ein manueller Aufruf können gleichzeitig schreiben.
+        # WAL kann fehlschlagen, wenn ein alter Prozess die Datei noch hält –
+        # dann bleibt es beim Standardmodus, was auch funktioniert.
+        self.conn.execute("PRAGMA busy_timeout=5000")
+        try:
+            self.conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError:
+            pass
         self.conn.commit()
 
     def close(self):

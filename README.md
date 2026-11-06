@@ -42,10 +42,31 @@ Rechner, der an bleibt (VPS, Pi) oder `python -m turkmek.bot --once` per cron.
 ```bash
 python -m turkmek.cli status     # Überblick
 python -m turkmek.cli due        # was gerade fällig ist
-python -m turkmek.cli send       # sofort eine Karte schicken
+python -m turkmek.cli send       # sofort eine Karte (delegiert an turkmek.send)
 python -m turkmek.cli pause 7
 python -m turkmek.cli resume
 python -m turkmek.cli reset kapi # Wort zurück auf neu
+```
+
+## Karte auf Abruf (soft)
+
+Eine Karte pro Aufruf, ohne auf einen Slot zu warten:
+
+```bash
+python -m turkmek.send                 # eine Karte
+python -m turkmek.send --count 3       # drei Karten
+python -m turkmek.send --dry-run       # nur zeigen, was käme
+python -m turkmek.send --force         # auch während einer Pause
+```
+
+Der Soft-Versand ignoriert das Tagesbudget für neue Wörter – wer fragt,
+bekommt. Wiederholt wird trotzdem nichts, was heute schon raus ist. Und er
+verbraucht **keinen** Slot: der 13:00-Versand findet danach trotzdem statt.
+Gedacht für cron, launchd oder einfach von Hand: ein Aufruf, eine Karte,
+Prozess beendet.
+
+```cron
+30 9 * * * cd ~/Documents/projects/tuerkmek && .venv/bin/python -m turkmek.send
 ```
 
 ## Wie der Bot entscheidet
@@ -143,6 +164,7 @@ turkmek/planner.py      Kartenauswahl
 turkmek/cards.py        Caption und Inline-Buttons
 turkmek/telegram.py     API-Client (Long Polling)
 turkmek/bot.py          Polling, Scheduler, Kommandos
+turkmek/send.py         Einzelversand pro Aufruf (soft)
 turkmek/cli.py          Zustand von der Kommandozeile
 assets/                 generierte Icons und Karten (eingecheckt)
 data/                   SQLite und Log (nicht eingecheckt)

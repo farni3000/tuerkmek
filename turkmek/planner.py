@@ -17,8 +17,8 @@ class Pick:
     kind: str  # new | review | extra
 
 
-def pick(store, now, day, max_new=MAX_NEW_PER_DAY):
-    seen = store.seen_today(day)
+def pick(store, now, day, max_new=MAX_NEW_PER_DAY, exclude=()):
+    seen = store.seen_today(day) | set(exclude)
 
     for row in store.due_items(now):
         if row["item_id"] not in seen:
