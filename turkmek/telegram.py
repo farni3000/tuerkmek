@@ -80,14 +80,14 @@ class Telegram:
         # Bytes statt Dateihandle, damit ein Retry nicht auf einem
         # geschlossenen Handle landet.
         files = {"photo": (path.name, path.read_bytes(), "image/jpeg")}
-        return await self._call("send_photo", data=data, files=files)
+        return await self._call("sendPhoto", data=data, files=files)
 
     async def send_message(self, chat_id, text, reply_markup=None):
         data = {"chat_id": str(chat_id), "text": text,
                 "disable_web_page_preview": "true"}
         if reply_markup:
             data["reply_markup"] = json.dumps(reply_markup)
-        return await self._call("send_message", data=data)
+        return await self._call("sendMessage", data=data)
 
     async def edit_caption(self, chat_id, message_id, caption,
                            reply_markup=None):

@@ -321,6 +321,9 @@ def setup_logging(cfg):
             logging.FileHandler(cfg.log_path),
         ],
     )
+    # httpx loggt sonst jede Request-URL – inklusive Bot-Token.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 async def run(once=False):
