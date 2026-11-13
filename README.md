@@ -98,6 +98,12 @@ Nach dem Tap: `Doğru!` oder `Yarın tekrar · morgen nochmal`. Die Bedienvokabe
 wiederholen sich täglich – `biliyorum`, `tekrar`, `doğru`, `yarın` sitzen nach
 zwei Wochen von selbst.
 
+Eine Karte nimmt genau eine Antwort an. Ein zweiter Tap wird verworfen
+(„Zaten cevaplandı · schon beantwortet“), die Buttons verschwinden nach dem
+ersten Tap. Karten, die länger als 24 Stunden unbeantwortet liegen, gelten als
+zu alt (`MAX_ANSWER_AGE` in `turkmek/store.py`) – ein später Tap verschiebt den
+Plan also nicht rückwirkend.
+
 ## Wie eine Karte entsteht
 
 ```

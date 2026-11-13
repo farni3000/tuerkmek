@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from turkmek.bot import tick
+from turkmek.bot import handle_callback, local_now, tick
 from turkmek.config import CARDS_DIR
 from turkmek.content import load_words
 from turkmek.store import Store
@@ -117,3 +117,59 @@ def test_send_failure_is_retried_and_then_given_up(env):
     row = store.delivery("08:30", NOW.date())
     assert row["status"] == "failed"
     assert row["attempts"] <= 3
+
+
+class CallbackTelegram:
+    def __init__(self):
+        self.answers = []
+        self.captions = []
+
+    async def answer_callback(self, callback_id, text=None):
+        self.answers.append(text)
+
+    async def edit_caption(self, chat_id, message_id, caption,
+                           reply_markup=None):
+        self.captions.append(caption)
+
+
+def callback_query(delivery_id, result):
+    return {
+        "id": "cb-1",
+        "from": {"id": 1234},
+        "data": f"a:{delivery_id}:{result}",
+        "message": {
+            "message_id": 1,
+            "chat": {"id": 1234},
+            "caption": "kapi — Tür",
+        },
+    }
+
+
+def test_second_tap_is_a_duplicate(env):
+    store, cfg, words = env
+    now = local_now(cfg)
+    delivery_id, _ = store.claim("kapi", "08:30", now.date(), "review", now)
+    store.mark_sent(delivery_id, 1, now)
+    telegram = CallbackTelegram()
+    query = callback_query(delivery_id, "y")
+
+    run(handle_callback(telegram, store, cfg, query))
+    run(handle_callback(telegram, store, cfg, query))
+
+    assert telegram.answers == ["✅ Doğru! · Gewusst",
+                                "Zaten cevaplandı · schon beantwortet"]
+    assert store.review_of("kapi")["reps"] == 1
+
+
+def test_stale_tap_is_rejected_with_hint(env):
+    store, cfg, words = env
+    old = local_now(cfg) - timedelta(days=3)
+    delivery_id, _ = store.claim("kapi", "08:30", old.date(), "review", old)
+    store.mark_sent(delivery_id, 1, old)
+    telegram = CallbackTelegram()
+
+    run(handle_callback(telegram, store, cfg,
+                        callback_query(delivery_id, "y")))
+
+    assert telegram.answers == ["⌛ Çok geç · zu alt"]
+    assert store.review_of("kapi")["reps"] == 0

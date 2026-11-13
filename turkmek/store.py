@@ -13,6 +13,11 @@ from pathlib import Path
 
 from . import srs
 
+# Eine Karte, die länger als das hier unbeantwortet herumliegt, ist keine
+# Wiederholung mehr, sondern ein alter Knopf. Solche Taps werden verworfen,
+# damit sie den aktuellen Plan nicht rückwirkend verschieben.
+MAX_ANSWER_AGE = timedelta(hours=24)
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS items (
     id       TEXT PRIMARY KEY,
@@ -205,48 +210,64 @@ class Store:
 
     # --------------------------------------------------------- Antworten ---
 
-    def answer(self, delivery_id, result, now):
-        """Verarbeitet einen Tap. Gibt (item_id, status) zurück."""
+    def answer(self, delivery_id, result, now, max_age=MAX_ANSWER_AGE):
+        """Verarbeitet einen Tap. Gibt (item_id, status) zurück.
+
+        Status ist "ok", "duplicate" (schon beantwortet), "stale" (Karte zu
+        alt) oder "unknown" (Lieferung fehlt). Die Antwort wird zuerst
+        geschrieben; nur wer sie tatsächlich anlegen konnte, darf auch den
+        Review-Zustand fortschreiben. Dadurch zählt ein Doppeltap nie doppelt.
+        """
         delivery = self.delivery_by_id(delivery_id)
         if delivery is None:
             return None, "unknown"
 
+        review = self.review_of(delivery["item_id"])
+        if review is None:
+            return delivery["item_id"], "unknown"
+
+        # Nur für die richtige Rückmeldung; verbindlich ist der INSERT unten.
         done = self.conn.execute(
             "SELECT 1 FROM answers WHERE delivery_id = ?", (delivery_id,)
         ).fetchone()
         if done:
             return delivery["item_id"], "duplicate"
 
-        review = self.review_of(delivery["item_id"])
-        if review is None:
-            return delivery["item_id"], "unknown"
+        if max_age is not None:
+            sent_at = datetime.fromisoformat(delivery["sent_at"])
+            if now - sent_at > max_age:
+                return delivery["item_id"], "stale"
 
-        state = srs.apply(
-            result,
-            review["reps"],
-            review["interval_days"],
-            review["ease"],
-            review["lapses"],
-        )
+        with self.conn:
+            cur = self.conn.execute(
+                "INSERT OR IGNORE INTO answers(delivery_id, result, answered_at) "
+                "VALUES(?, ?, ?)",
+                (delivery_id, result, ts(now)),
+            )
+            if not cur.rowcount:
+                return delivery["item_id"], "duplicate"
 
-        self.conn.execute(
-            "UPDATE reviews SET reps = ?, interval_days = ?, ease = ?, "
-            "lapses = ?, last_result = ?, due_at = ? WHERE item_id = ?",
-            (
-                state["reps"],
-                state["interval"],
-                state["ease"],
-                state["lapses"],
+            state = srs.apply(
                 result,
-                ts(now + timedelta(days=state["interval"])),
-                delivery["item_id"],
-            ),
-        )
-        self.conn.execute(
-            "INSERT INTO answers(delivery_id, result, answered_at) VALUES(?, ?, ?)",
-            (delivery_id, result, ts(now)),
-        )
-        self.conn.commit()
+                review["reps"],
+                review["interval_days"],
+                review["ease"],
+                review["lapses"],
+            )
+
+            self.conn.execute(
+                "UPDATE reviews SET reps = ?, interval_days = ?, ease = ?, "
+                "lapses = ?, last_result = ?, due_at = ? WHERE item_id = ?",
+                (
+                    state["reps"],
+                    state["interval"],
+                    state["ease"],
+                    state["lapses"],
+                    result,
+                    ts(now + timedelta(days=state["interval"])),
+                    delivery["item_id"],
+                ),
+            )
         return delivery["item_id"], "ok"
 
     # ------------------------------------------------------------ Statistik --

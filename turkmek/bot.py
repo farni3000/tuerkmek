@@ -301,9 +301,14 @@ async def handle_callback(tg, store, cfg, query):
                     f"{caption}\n\n{cards.STATUS[result]}",
                 )
     elif status == "duplicate":
+        log.info("Doppeltap auf Lieferung %s (%s) ignoriert",
+                 delivery_id, result)
         await tg.answer_callback(
             query["id"], "Zaten cevaplandı · schon beantwortet"
         )
+    elif status == "stale":
+        log.info("Alte Lieferung %s (%s) abgelehnt", delivery_id, result)
+        await tg.answer_callback(query["id"], cards.STALE_TEXT)
     else:
         await tg.answer_callback(query["id"])
 

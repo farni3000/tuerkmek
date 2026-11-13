@@ -100,8 +100,12 @@ class Telegram:
         try:
             return await self._call("editMessageCaption", data=data)
         except TelegramError as exc:
-            # "message is not modified" ist harmlos.
-            log.debug("Caption-Edit ignoriert: %s", exc)
+            # "message is not modified" ist harmlos; alles andere heißt, dass
+            # die Buttons stehen bleiben und erneut getippt wird.
+            if "message is not modified" in str(exc):
+                log.debug("Caption-Edit ohne Änderung: %s", exc)
+            else:
+                log.warning("Caption-Edit fehlgeschlagen: %s", exc)
             return None
 
     # ------------------------------------------------------------ Empfangen --
@@ -118,5 +122,5 @@ class Telegram:
         try:
             return await self._call("answerCallbackQuery", data=data)
         except TelegramError as exc:
-            log.debug("Callback-Antwort ignoriert: %s", exc)
+            log.warning("Callback-Antwort fehlgeschlagen: %s", exc)
             return None

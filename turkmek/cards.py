@@ -15,6 +15,8 @@ STATUS = {
     "n": "🔁 Yarın tekrar · morgen nochmal",
 }
 
+STALE_TEXT = "⌛ Çok geç · zu alt"
+
 
 def caption(word, status=None):
     """Bildunterschrift: Wort, Übersetzung, Beispielsatz."""

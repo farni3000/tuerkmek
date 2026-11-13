@@ -99,3 +99,24 @@ def test_answer_twice_is_rejected(store):
     _, status = store.answer(delivery_id, "n", NOW)
     assert status == "duplicate"
     assert store.review_of("a")["reps"] == 1
+
+
+def test_answer_after_a_day_is_stale(store):
+    delivery_id = send(store, "a", "08:30")
+
+    _, status = store.answer(delivery_id, "y", NOW + timedelta(hours=25))
+
+    assert status == "stale"
+    review = store.review_of("a")
+    assert review["reps"] == 0
+    assert review["last_result"] is None
+
+
+def test_stale_guard_can_be_disabled(store):
+    delivery_id = send(store, "a", "08:30")
+
+    _, status = store.answer(
+        delivery_id, "y", NOW + timedelta(days=30), max_age=None
+    )
+
+    assert status == "ok"
