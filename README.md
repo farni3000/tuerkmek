@@ -36,6 +36,7 @@ Rechner, der an bleibt (VPS, Pi) oder `python -m turkmek.bot --once` per cron.
 | Kommando | Wirkung |
 |---|---|
 | `/next` | sofort eine Karte |
+| `/bit` | sofort ein Grammatik-Bit |
 | `/heute` | was heute noch kommt, wie viel fällig ist |
 | `/stats` | Serie, Trefferquote, fällige Karten |
 | `/pause 7` | sieben Tage Ruhe (ohne Zahl: ein Tag) |
@@ -115,6 +116,11 @@ mehr.
 
 Fehlt eine Karte im Slot, kommt das Bit trotzdem; umgekehrt blockiert ein
 Bit-Fehler nie die Karte. Pause und Wochenende gelten für beides.
+
+`/bit` schickt sofort ein weiteres Bit – wie `/next` auch während einer Pause.
+Es verbraucht keinen Tages-Slot (das reguläre Bit kommt später trotzdem),
+überspringt, was heute schon gezeigt wurde, und kann ganz normal beantwortet
+oder mit `Anladım` abgeschaltet werden.
 
 ## Zweisprachigkeit
 

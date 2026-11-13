@@ -7,7 +7,9 @@ from types import SimpleNamespace
 import pytest
 
 from turkmek import grammar
-from turkmek.bot import handle_callback, local_now, tick
+from turkmek.bot import (
+    handle_callback, handle_message, local_now, send_bit, tick,
+)
 from turkmek.config import BITS_DIR, CARDS_DIR
 from turkmek.content import load_words
 from turkmek.grammar import load_bits
@@ -28,6 +30,16 @@ class FakeTelegram:
              "markup": reply_markup}
         )
         return {"message_id": 500 + len(self.sent)}
+
+
+class CommandTelegram(FakeTelegram):
+    def __init__(self):
+        super().__init__()
+        self.messages = []
+
+    async def send_message(self, chat_id, text, reply_markup=None):
+        self.messages.append(text)
+        return {"message_id": 900 + len(self.messages)}
 
 
 @pytest.fixture
@@ -375,3 +387,105 @@ def test_bit_answers_do_not_change_word_stats(env):
     assert stats["answered"] == 1
     assert stats["good"] == 1
     assert stats["accuracy"] == 1.0
+
+
+def command_message(text):
+    return {
+        "from": {"id": 1234},
+        "chat": {"id": 1234},
+        "text": text,
+    }
+
+
+def test_bit_command_sends_a_bit(env):
+    store, cfg, words = env
+    telegram = CommandTelegram()
+
+    run(handle_message(
+        telegram, store, cfg, words, BITS, command_message("/bit")
+    ))
+
+    assert len(telegram.sent) == 1
+    assert telegram.messages == []
+    assert len(store.bits_today(local_now(cfg).date())) == 1
+
+
+def test_bit_command_works_during_pause(env):
+    store, cfg, words = env
+    store.set_setting("pause_until", "2099-01-01T00:00")
+    telegram = CommandTelegram()
+
+    run(handle_message(
+        telegram, store, cfg, words, BITS, command_message("/bit")
+    ))
+
+    assert len(telegram.sent) == 1
+
+
+def test_manual_bit_does_not_consume_the_daily_slot(env):
+    store, cfg, words = env
+    telegram = FakeTelegram()
+
+    assert run(send_bit(
+        telegram, store, cfg, BITS, 1234, NOON.date(), NOON, manual=True
+    )) is True
+    assert store.delivery("bit", NOON.date()) is None
+
+    # Der reguläre 13:00-Versand kommt danach noch – mit einem anderen Bit.
+    assert run(tick(telegram, store, cfg, words, BITS, now=NOON)) is True
+    row = store.delivery("bit", NOON.date())
+    assert row is not None
+    assert row["status"] == "sent"
+
+    manual_ids = store.bits_today(NOON.date())
+    assert row["item_id"] in manual_ids
+    assert len(manual_ids) == 2
+
+
+def test_manual_bits_do_not_repeat_today(env):
+    store, cfg, words = env
+    telegram = FakeTelegram()
+
+    run(send_bit(
+        telegram, store, cfg, BITS, 1234, NOON.date(), NOON, manual=True
+    ))
+    run(send_bit(
+        telegram, store, cfg, BITS, 1234, NOON.date(),
+        NOON + timedelta(microseconds=1), manual=True,
+    ))
+
+    assert len(store.bits_today(NOON.date())) == 2
+    assert len(telegram.sent) == 2
+
+
+def test_bit_command_reports_when_nothing_is_available(env):
+    store, cfg, words = env
+    store.conn.execute(
+        "UPDATE bit_reviews SET retired_at = '2026-01-01T00:00'"
+    )
+    store.conn.commit()
+    telegram = CommandTelegram()
+
+    run(handle_message(
+        telegram, store, cfg, words, BITS, command_message("/bit")
+    ))
+
+    assert telegram.sent == []
+    assert telegram.messages == ["Kein Bit verfügbar · bit yok"]
+
+
+def test_bit_command_skips_todays_scheduled_bit(env):
+    store, cfg, words = env
+    telegram = FakeTelegram()
+    run(tick(telegram, store, cfg, words, BITS, now=NOON))
+    scheduled = store.delivery("bit", NOON.date())
+    assert scheduled is not None
+
+    run(send_bit(
+        telegram, store, cfg, BITS, 1234, NOON.date(),
+        NOON + timedelta(seconds=1), manual=True,
+    ))
+
+    ids = store.bits_today(NOON.date())
+    assert len(ids) == 2
+    assert scheduled["item_id"] in ids

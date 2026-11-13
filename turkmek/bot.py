@@ -30,6 +30,7 @@ MAX_ATTEMPTS = 3
 HELP_TEXT = (
     "Kommandos · Komutlar\n\n"
     "/next – sofort eine Karte · hemen bir kart\n"
+    "/bit – sofort ein Grammatik-Bit · hemen bir bit\n"
     "/heute – was heute noch kommt · bugün\n"
     "/stats – Serie, Quote, Fällige · istatistik\n"
     "/pause 7 – Pause in Tagen (ohne Zahl: 1)\n"
@@ -112,17 +113,28 @@ async def send_slot(tg, store, cfg, words, label, day, now, chat_id):
     return await deliver(tg, store, cfg, words, chat_id, picked, label, day, now)
 
 
-async def send_bit(tg, store, cfg, bits, chat_id, day, now):
-    """Verschickt höchstens ein Grammatik-Bit pro Tag."""
-    row = store.delivery("bit", day)
-    if row:
-        if row["status"] == "sent" or row["attempts"] >= MAX_ATTEMPTS:
-            return False
-        bit_id = row["item_id"]
-    else:
-        bit_id = planner.pick_bit(store, now)
+async def send_bit(tg, store, cfg, bits, chat_id, day, now, manual=False):
+    """Verschickt ein Grammatik-Bit.
+
+    Automatisch höchstens eines pro Tag über den Slot "bit". Manuell (über
+    /bit) mit einem eigenen Slot, damit der Tages-Slot frei bleibt.
+    """
+    if manual:
+        bit_id = planner.pick_bit(store, now, exclude=store.bits_today(day))
         if bit_id is None:
             return False
+        slot = f"bit-manuell-{now:%H%M%S%f}"
+    else:
+        row = store.delivery("bit", day)
+        if row:
+            if row["status"] == "sent" or row["attempts"] >= MAX_ATTEMPTS:
+                return False
+            bit_id = row["item_id"]
+        else:
+            bit_id = planner.pick_bit(store, now, exclude=store.bits_today(day))
+            if bit_id is None:
+                return False
+        slot = "bit"
 
     bit = bits.get(bit_id)
     if bit is None:
@@ -134,7 +146,7 @@ async def send_bit(tg, store, cfg, bits, chat_id, day, now):
         log.error("Bit-Icon fehlt: %s", bit_path)
         return False
 
-    delivery_id, fresh = store.claim(bit_id, "bit", day, "bit", now)
+    delivery_id, fresh = store.claim(bit_id, slot, day, "bit", now)
     if delivery_id is None:
         return False
 
@@ -158,7 +170,8 @@ async def send_bit(tg, store, cfg, bits, chat_id, day, now):
         return False
 
     store.mark_sent(delivery_id, message["message_id"], now)
-    log.info("Bit %s um %s", bit_id, now.strftime("%H:%M"))
+    log.info("Bit %s%s um %s", bit_id, " (manuell)" if manual else "",
+             now.strftime("%H:%M"))
     return True
 
 
@@ -249,10 +262,10 @@ async def handle_update(tg, store, cfg, words, bits, update):
     if "callback_query" in update:
         await handle_callback(tg, store, cfg, bits, update["callback_query"])
     elif "message" in update:
-        await handle_message(tg, store, cfg, words, update["message"])
+        await handle_message(tg, store, cfg, words, bits, update["message"])
 
 
-async def handle_message(tg, store, cfg, words, message):
+async def handle_message(tg, store, cfg, words, bits, message):
     user = message.get("from") or {}
     user_id = user.get("id")
     chat_id = (message.get("chat") or {}).get("id")
@@ -311,6 +324,13 @@ async def handle_message(tg, store, cfg, words, message):
             return
         await deliver(tg, store, cfg, words, chat_id, picked,
                       f"manuell-{now:%H%M%S}", now.date(), now)
+
+    elif command == "bit":
+        sent = await send_bit(
+            tg, store, cfg, bits, chat_id, now.date(), now, manual=True
+        )
+        if not sent:
+            await tg.send_message(chat_id, "Kein Bit verfügbar · bit yok")
 
     elif command == "pause":
         days = int(args[0]) if args and args[0].isdigit() else 1

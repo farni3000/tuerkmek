@@ -187,6 +187,15 @@ class Store:
         ).fetchall()
         return {r["item_id"] for r in rows}
 
+    def bits_today(self, day):
+        """Alle Bits, die heute schon gezeigt oder reserviert wurden."""
+        rows = self.conn.execute(
+            "SELECT item_id FROM deliveries "
+            "WHERE local_date = ? AND kind = 'bit'",
+            (day.isoformat(),),
+        ).fetchall()
+        return {r["item_id"] for r in rows}
+
     def new_today(self, day):
         row = self.conn.execute(
             "SELECT COUNT(*) AS n FROM deliveries "
