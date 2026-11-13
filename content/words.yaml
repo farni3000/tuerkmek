@@ -411,3 +411,391 @@
   example:
     tr: Gemi denizde.
     de: Das Schiff ist auf dem Meer.
+
+# --- Verben ---------------------------------------------------------------
+- id: gitmek
+  tr: gitmek
+  de: gehen
+  pos: verb
+  example:
+    tr: Her gün okula gidiyorum.
+    de: Ich gehe jeden Tag zur Schule.
+
+- id: gelmek
+  tr: gelmek
+  de: kommen
+  pos: verb
+  example:
+    tr: Arkadaşım yarın geliyor.
+    de: Mein Freund kommt morgen.
+
+- id: yemek
+  tr: yemek
+  de: essen
+  pos: verb
+  example:
+    tr: Akşam yemeği yiyoruz.
+    de: Wir essen zu Abend.
+
+- id: icmek
+  tr: içmek
+  de: trinken
+  pos: verb
+  example:
+    tr: Sabah kahve içiyorum.
+    de: Morgens trinke ich Kaffee.
+
+- id: uyumak
+  tr: uyumak
+  de: schlafen
+  pos: verb
+  example:
+    tr: Bebek şimdi uyuyor.
+    de: Das Baby schläft gerade.
+
+- id: kosmak
+  tr: koşmak
+  de: rennen
+  pos: verb
+  example:
+    tr: Çocuklar parkta koşuyor.
+    de: Die Kinder rennen im Park.
+
+- id: okumak
+  tr: okumak
+  de: lesen
+  pos: verb
+  example:
+    tr: Her akşam kitap okuyorum.
+    de: Jeden Abend lese ich ein Buch.
+
+- id: yazmak
+  tr: yazmak
+  de: schreiben
+  pos: verb
+  example:
+    tr: Sana bir mektup yazıyorum.
+    de: Ich schreibe dir einen Brief.
+
+- id: gormek
+  tr: görmek
+  de: sehen
+  pos: verb
+  example:
+    tr: Seni görmek güzel.
+    de: Dich zu sehen ist schön.
+
+- id: duymak
+  tr: duymak
+  de: hören
+  pos: verb
+  example:
+    tr: Müziği duyuyor musun?
+    de: Hörst du die Musik?
+
+- id: sevmek
+  tr: sevmek
+  de: lieben
+  pos: verb
+  example:
+    tr: Kedileri çok seviyorum.
+    de: Ich liebe Katzen sehr.
+
+- id: konusmak
+  tr: konuşmak
+  de: sprechen
+  pos: verb
+  example:
+    tr: Türkçe konuşuyoruz.
+    de: Wir sprechen Türkisch.
+
+- id: almak
+  tr: almak
+  de: nehmen
+  pos: verb
+  example:
+    tr: Bir bilet alıyorum.
+    de: Ich kaufe eine Fahrkarte.
+
+- id: vermek
+  tr: vermek
+  de: geben
+  pos: verb
+  example:
+    tr: Bana su verir misin?
+    de: Gibst du mir Wasser?
+
+- id: acmak
+  tr: açmak
+  de: öffnen
+  pos: verb
+  example:
+    tr: Pencereyi açar mısın?
+    de: Öffnest du das Fenster?
+
+- id: kapatmak
+  tr: kapatmak
+  de: schließen
+  pos: verb
+  example:
+    tr: Işığı kapatır mısın?
+    de: Machst du das Licht aus?
+
+- id: oturmak
+  tr: oturmak
+  de: sitzen
+  pos: verb
+  example:
+    tr: Buraya otur.
+    de: Setz dich hierhin.
+
+- id: oynamak
+  tr: oynamak
+  de: spielen
+  pos: verb
+  example:
+    tr: Çocuklar top oynuyor.
+    de: Die Kinder spielen Ball.
+
+- id: calismak
+  tr: çalışmak
+  de: arbeiten
+  pos: verb
+  example:
+    tr: Babam çok çalışıyor.
+    de: Mein Vater arbeitet viel.
+
+- id: beklemek
+  tr: beklemek
+  de: warten
+  pos: verb
+  example:
+    tr: Otobüsü bekliyorum.
+    de: Ich warte auf den Bus.
+
+# --- Adjektive ------------------------------------------------------------
+- id: buyuk
+  tr: büyük
+  de: groß
+  pos: adj
+  example:
+    tr: Bu ev çok büyük.
+    de: Dieses Haus ist sehr groß.
+
+- id: kucuk
+  tr: küçük
+  de: klein
+  pos: adj
+  example:
+    tr: Kedi küçük.
+    de: Die Katze ist klein.
+
+- id: guzel
+  tr: güzel
+  de: schön
+  pos: adj
+  example:
+    tr: Hava güzel.
+    de: Das Wetter ist schön.
+
+- id: cirkin
+  tr: çirkin
+  de: hässlich
+  pos: adj
+  example:
+    tr: Bu resim çirkin.
+    de: Dieses Bild ist hässlich.
+
+- id: sicak
+  tr: sıcak
+  de: heiß
+  pos: adj
+  example:
+    tr: Çay sıcak.
+    de: Der Tee ist heiß.
+
+- id: soguk
+  tr: soğuk
+  de: kalt
+  pos: adj
+  example:
+    tr: Su çok soğuk.
+    de: Das Wasser ist sehr kalt.
+
+- id: yeni
+  tr: yeni
+  de: neu
+  pos: adj
+  example:
+    tr: Telefonum yeni.
+    de: Mein Telefon ist neu.
+
+- id: eski
+  tr: eski
+  de: alt
+  pos: adj
+  example:
+    tr: Bu araba eski.
+    de: Dieses Auto ist alt.
+
+- id: hizli
+  tr: hızlı
+  de: schnell
+  pos: adj
+  example:
+    tr: Tren çok hızlı.
+    de: Der Zug ist sehr schnell.
+
+- id: yavas
+  tr: yavaş
+  de: langsam
+  pos: adj
+  example:
+    tr: Kaplumbağa yavaş.
+    de: Die Schildkröte ist langsam.
+
+- id: iyi
+  tr: iyi
+  de: gut
+  pos: adj
+  example:
+    tr: Bugün hava iyi.
+    de: Heute ist das Wetter gut.
+
+- id: kotu
+  tr: kötü
+  de: schlecht
+  pos: adj
+  example:
+    tr: Kötü bir gün.
+    de: Ein schlechter Tag.
+
+# --- Farben ---------------------------------------------------------------
+- id: kirmizi
+  tr: kırmızı
+  de: rot
+  pos: color
+  example:
+    tr: Elma kırmızı.
+    de: Der Apfel ist rot.
+
+- id: mavi
+  tr: mavi
+  de: blau
+  pos: color
+  example:
+    tr: Deniz mavi.
+    de: Das Meer ist blau.
+
+- id: yesil
+  tr: yeşil
+  de: grün
+  pos: color
+  example:
+    tr: Çimen yeşil.
+    de: Das Gras ist grün.
+
+- id: sari
+  tr: sarı
+  de: gelb
+  pos: color
+  example:
+    tr: Limon sarı.
+    de: Die Zitrone ist gelb.
+
+- id: siyah
+  tr: siyah
+  de: schwarz
+  pos: color
+  example:
+    tr: Kedi siyah.
+    de: Die Katze ist schwarz.
+
+- id: beyaz
+  tr: beyaz
+  de: weiß
+  pos: color
+  example:
+    tr: Kar beyaz.
+    de: Der Schnee ist weiß.
+
+# --- Alltag ---------------------------------------------------------------
+- id: merhaba
+  tr: merhaba
+  de: hallo
+  pos: phrase
+  example:
+    tr: Merhaba, nasılsın?
+    de: Hallo, wie geht es dir?
+
+- id: tesekkurler
+  tr: teşekkürler
+  de: danke
+  pos: phrase
+  example:
+    tr: Yardımın için teşekkürler.
+    de: Danke für deine Hilfe.
+
+- id: lutfen
+  tr: lütfen
+  de: bitte
+  pos: phrase
+  example:
+    tr: Bir bardak su lütfen.
+    de: Ein Glas Wasser, bitte.
+
+- id: evet
+  tr: evet
+  de: ja
+  pos: phrase
+  example:
+    tr: Evet, anlıyorum.
+    de: Ja, ich verstehe.
+
+- id: hayir
+  tr: hayır
+  de: nein
+  pos: phrase
+  example:
+    tr: Hayır, teşekkürler.
+    de: Nein, danke.
+
+- id: bugun
+  tr: bugün
+  de: heute
+  pos: phrase
+  example:
+    tr: Bugün pazartesi.
+    de: Heute ist Montag.
+
+- id: yarin
+  tr: yarın
+  de: morgen
+  pos: phrase
+  example:
+    tr: Yarın görüşürüz.
+    de: Bis morgen.
+
+- id: dun
+  tr: dün
+  de: gestern
+  pos: phrase
+  example:
+    tr: Dün yağmur vardı.
+    de: Gestern hat es geregnet.
+
+- id: simdi
+  tr: şimdi
+  de: jetzt
+  pos: phrase
+  example:
+    tr: Şimdi çalışıyorum.
+    de: Jetzt arbeite ich.
+
+- id: belki
+  tr: belki
+  de: vielleicht
+  pos: phrase
+  example:
+    tr: Belki yarın gelirim.
+    de: Vielleicht komme ich morgen.

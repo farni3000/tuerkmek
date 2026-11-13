@@ -7,7 +7,8 @@ Spaced-Repetition-Algorithmus, was morgen wieder dran ist.
 Der Name ist ein Wortspiel: `türk` plus die türkische Infinitivendung `-mek`,
 wie in `yürümek` (gehen) oder `gülmek` (lachen) – ein Verb, das es nicht gibt.
 
-**Stand:** 50 A1-Wörter, Karten-Pipeline und Telegram-Bot laufen.
+**Stand:** 98 A1-Wörter (50 Nomen, 20 Verben, 12 Adjektive, 6 Farben,
+10 Alltagswörter), Karten-Pipeline und Telegram-Bot laufen.
 
 ## Setup
 
@@ -100,9 +101,13 @@ zwei Wochen von selbst.
 ```
 content/words.yaml     Vokabel + Beispielsatz
 turkmek/icons.py       Zeichenrezept (Python, geometrische Primitive)
+turkmek/gags.py        welcher Katzen-Auftritt zu welchem Wort gehört
       │
       ├─ jitter_shapes   jede Form leicht verschieben/drehen, Seed = Wort-ID
-      ├─ fit_shapes      auf 80×80 einpassen, damit alle Motive gleich wirken
+      ├─ fit_shapes      auf 64×64 einpassen, damit alle Motive gleich wirken
+      ├─ mascot.cat      die Katze daneben setzen (Pose, Accessoire, Requisite)
+      ├─ wobble_shapes   Kanten verbiegen, Linien überschießen lassen
+      ├─ misregister     Füllungen leicht neben die Kontur setzen
       │
       ├─► assets/icons/svg/<id>.svg    Vektorquelle
       ├─► assets/icons/png/<id>.png    512 px, transparent
@@ -115,8 +120,16 @@ Linie –, deshalb sind SVG-Export und Rasterizer knapp und identisch.
 
 **Warum gezeichnet und nicht generiert:** Ein Bildmodell liefert für 500 Wörter
 500 verschiedene Strichstärken und Perspektiven. Hier kommt der Stil aus dem
-Code: eine Palette, eine Kontur, eine Geometrie. Die Unvollkommenheit ist
-dagegen Absicht und kommt aus `jitter_shapes` – geseedet, also bei jedem Build
+Code: eine Palette, eine Kontur, eine Geometrie.
+
+**Warum die Bilder absichtlich schief sind:** Eine perfekte Vektorgrafik ist
+hübsch, aber austauschbar. Damit das Wort hängen bleibt, darf das Bild ruhig
+etwas falsch aussehen: `jitter_shapes` verschiebt ganze Formen,
+`wobble_shapes` verbiegt jede Kante wie eine zittrige Hand, `misregister_shapes`
+setzt Füllungen neben die Kontur, und der Kartenrahmen ist von Hand gezogen.
+Dazu kommt die Katze aus `mascot.py`: sie sitzt auf jeder Karte, schläft neben
+der Uhr, trägt eine Sonnenbrille oder hält einen Fisch. Der Witz ist der
+Anker – alles bleibt geseedet (Seed = Wort-ID) und damit bei jedem Build
 identisch.
 
 **Warum die Karte keinen Text trägt:** Die Vokabel steht in der Bildunterschrift.
@@ -139,22 +152,30 @@ Gerendert wird nur, was sich geändert hat (Hash-Manifest in
 ## Ein Wort hinzufügen
 
 1. Eintrag in `content/words.yaml` (ASCII-`id`, `tr`, `de`, `pos`, Beispielsatz).
+   `pos` ist eine von `noun`, `verb`, `adj`, `color`, `phrase` – sie steuert
+   den Standard-Auftritt der Katze.
 2. Funktion in `turkmek/icons.py` schreiben und in `ICONS` eintragen.
-3. `python -m turkmek.render --only <id> && python -m turkmek.render --sheet`
+3. Optional einen eigenen Auftritt in `turkmek/gags.py` unter `SPECIAL`
+   hinterlegen (Pose, Accessoire, Requisite, Effekt).
+4. `python -m turkmek.render --only <id> && python -m turkmek.render --sheet`
 
 Die Prüfung in `turkmek/content.py` meckert, wenn ein Wort kein Icon hat, ein
-Icon kein Wort, oder eine `id` doppelt bzw. nicht ASCII ist.
+Icon kein Wort, oder eine `id` doppelt bzw. nicht ASCII ist. Die Tests prüfen
+zusätzlich, dass jede Karte auf die 100×100-Fläche passt und dass in `gags.py`
+nur bekannte Posen und Requisiten referenziert werden.
 
 ## Struktur
 
 ```
-content/words.yaml      A1-Wortliste (50 Substantive)
+content/words.yaml      A1-Wortliste (98 Wörter, fünf Wortarten)
 turkmek/geometry.py     Punkte für Kreis, Rechteck, Stern, Bézier, Mondsichel
-turkmek/scene.py        Formen, Jitter, Einpassen
+turkmek/scene.py        Formen, Jitter, Wobble, Füllungsversatz, Einpassen
 turkmek/svg.py          Szene → SVG
 turkmek/raster.py       Szene → PNG (Pillow, 4× Supersampling)
-turkmek/card.py         Papierkarte mit Körnung und Rahmen
-turkmek/icons.py        die 50 Zeichenrezepte
+turkmek/card.py         Papierkarte mit Körnung, schiefem Rahmen, Gebrauchsspuren
+turkmek/icons.py        die 98 Zeichenrezepte
+turkmek/mascot.py       die Katze in sechs Posen plus Accessoires
+turkmek/gags.py         Wort → Katzen-Auftritt
 turkmek/content.py      Laden und Prüfen der Wortliste
 turkmek/render.py       Render-CLI
 turkmek/config.py       .env, Zeitzone, Slots, Pfade
@@ -180,11 +201,14 @@ pytest
 ```
 
 Abgedeckt: SRS-Intervalle, Kartenauswahl, Idempotenz des Versands (der Tick darf
-nie zweimal dieselbe Karte schicken), Caption- und Button-Format.
+nie zweimal dieselbe Karte schicken), Caption- und Button-Format, Wortliste und
+Icons, Determinismus von Jitter und Wobble, ob jede Karte auf die Zeichenfläche
+passt, und ob `gags.py` nur bekannte Katzen-Posen referenziert.
 
 ## Nächste Schritte
 
 - Multiple Choice statt Selbstbewertung – dafür braucht `words.yaml` ein
   `topic`-Feld, damit die Distraktoren aus derselben Kategorie kommen.
-- Verben und Adjektive: brauchen Symbole statt Gegenständen.
+- Mehr Wörter: Familie (`anne`, `baba`, `çocuk`), Körper (`göz`, `el`, `ayak`)
+  und Zahlen. Für Pronomen und Konjunktionen braucht es neue Symbolideen.
 - Mehrere Karten pro Nudge, sobald die Wortliste über ~200 wächst.

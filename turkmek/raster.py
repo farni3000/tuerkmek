@@ -22,7 +22,10 @@ def render(shapes, size=512, supersample=4, background=None):
         pts = [(x * scale, y * scale) for x, y in s.points]
 
         if s.fill and len(pts) >= 3:
-            draw.polygon(pts, fill=s.fill)
+            ox, oy = s.fill_offset
+            fill_pts = [((x + ox) * scale, (y + oy) * scale)
+                        for x, y in s.points]
+            draw.polygon(fill_pts, fill=s.fill)
 
         if s.stroke and s.width:
             width = max(1, int(round(s.width * scale)))

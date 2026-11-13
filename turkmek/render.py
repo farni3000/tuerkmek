@@ -15,7 +15,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from . import card as card_mod
-from . import icons, raster, scene, svg
+from . import gags, icons, mascot, raster, scene, svg
 from .content import ROOT, load_words
 
 ASSETS = ROOT / "assets"
@@ -24,16 +24,30 @@ MANIFEST = ASSETS / ".manifest.json"
 ICON_SIZE = 512
 CARD_SIZE = 900
 JITTER = 0.012
+ICON_FILL = 64.0
+ICON_CENTER = (42.0, 44.0)
+# Bei Änderungen an Karte/Rahmen/Gebrauchsspuren hochzählen, damit der
+# Manifest-Hash alte Karten als veraltet erkennt.
+STYLE_VERSION = 2
 
 
 def build_scene(word, jitter=JITTER):
     shapes = icons.ICONS[word["id"]]()
     shapes = scene.jitter_shapes(shapes, seed=word["id"], amount=jitter)
-    return scene.fit_shapes(shapes, size=80.0)
+    shapes = scene.fit_shapes(shapes, size=ICON_FILL, center=ICON_CENTER)
+
+    gag = gags.for_word(word)
+    shapes += mascot.cat(gag.pose, gag.x, gag.y, gag.s,
+                         accessory=gag.accessory, item=gag.item,
+                         effect=gag.effect)
+
+    shapes = scene.wobble_shapes(shapes, seed=word["id"])
+    return scene.misregister_shapes(shapes, seed=word["id"])
 
 
 def _digest(shapes, jitter):
-    payload = svg.to_svg(shapes) + f"|{jitter}|{ICON_SIZE}|{CARD_SIZE}"
+    payload = (svg.to_svg(shapes)
+               + f"|{jitter}|{ICON_SIZE}|{CARD_SIZE}|v{STYLE_VERSION}")
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
