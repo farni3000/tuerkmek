@@ -105,7 +105,7 @@ turkmek/gags.py        welcher Katzen-Auftritt zu welchem Wort gehört
       │
       ├─ jitter_shapes   jede Form leicht verschieben/drehen, Seed = Wort-ID
       ├─ fit_shapes      auf 64×64 einpassen, damit alle Motive gleich wirken
-      ├─ mascot.cat      die Katze daneben setzen (Pose, Accessoire, Requisite)
+      ├─ mascot.cat      die Katze in Szene setzen (Pose, Accessoire, Requisite)
       ├─ wobble_shapes   Kanten verbiegen, Linien überschießen lassen
       ├─ misregister     Füllungen leicht neben die Kontur setzen
       │
@@ -127,10 +127,34 @@ hübsch, aber austauschbar. Damit das Wort hängen bleibt, darf das Bild ruhig
 etwas falsch aussehen: `jitter_shapes` verschiebt ganze Formen,
 `wobble_shapes` verbiegt jede Kante wie eine zittrige Hand, `misregister_shapes`
 setzt Füllungen neben die Kontur, und der Kartenrahmen ist von Hand gezogen.
-Dazu kommt die Katze aus `mascot.py`: sie sitzt auf jeder Karte, schläft neben
-der Uhr, trägt eine Sonnenbrille oder hält einen Fisch. Der Witz ist der
-Anker – alles bleibt geseedet (Seed = Wort-ID) und damit bei jedem Build
-identisch.
+Der Witz ist der Anker – alles bleibt geseedet (Seed = Wort-ID) und damit bei
+jedem Build identisch.
+
+## Die Katze
+
+Dieselbe beige Katze taucht auf fast jeder Karte auf, aber nie einfach nur
+daneben: `gags.py` gibt jedem Wort einen eigenen Auftritt. Sie liegt auf dem
+Bett, hängt am Baum, reitet auf dem Pferd, guckt aus dem Busfenster, hält den
+Fisch oder schläft auf der Schnecke. Die Position wird relativ zur
+Bounding-Box des Icons aufgelöst, nicht in festen Koordinaten:
+
+| Anker | Bedeutung |
+|---|---|
+| `beside_left` / `beside_right` | steht neben dem Motiv |
+| `on_top` | sitzt oder liegt auf der Oberkante (Tisch, Buch, Dach) |
+| `inside` | Kopf in einer Öffnung (Fenster, Tür, Fahrzeug) |
+| `behind_left` / `behind_right` | lugt hervor, teilweise verdeckt |
+| `under` | darunter |
+| `edge` | nur Kopf und Pfoten am Bildrand |
+
+Dazu kommen Pose (`sit`, `lie`, `hang`, `ride`, `walk`, `run`, `sniff`,
+`peek`, `sleep`, `point`, `hold`, `wave`, `push`, `reach`), Blickrichtung,
+Größe, Schicht (vor/hinter dem Motiv) und optional ein Accessoire, eine
+Requisite oder ein Effekt.
+
+Zehn Karten bleiben bewusst katzenfrei: `gunes`, `ay`, `yildiz`, `yagmur`,
+`kar`, `bulut`, `su`, `tuz`, `seker`, `beyaz`. Dort liegt nur ein
+Pfotenabdruck – die Abwesenheit ist selbst ein kleiner Gag.
 
 **Warum die Karte keinen Text trägt:** Die Vokabel steht in der Bildunterschrift.
 So bleibt sie kopierbar, durchsuchbar und im gesperrten Bildschirm trotzdem
@@ -152,17 +176,17 @@ Gerendert wird nur, was sich geändert hat (Hash-Manifest in
 ## Ein Wort hinzufügen
 
 1. Eintrag in `content/words.yaml` (ASCII-`id`, `tr`, `de`, `pos`, Beispielsatz).
-   `pos` ist eine von `noun`, `verb`, `adj`, `color`, `phrase` – sie steuert
-   den Standard-Auftritt der Katze.
+   `pos` ist eine von `noun`, `verb`, `adj`, `color`, `phrase`.
 2. Funktion in `turkmek/icons.py` schreiben und in `ICONS` eintragen.
-3. Optional einen eigenen Auftritt in `turkmek/gags.py` unter `SPECIAL`
-   hinterlegen (Pose, Accessoire, Requisite, Effekt).
+3. Auftritt in `turkmek/gags.py` unter `SCENES` eintragen (Pose, Anker,
+   Accessoire, Requisite, Effekt) – oder bewusst in `NO_CAT` aufnehmen.
 4. `python -m turkmek.render --only <id> && python -m turkmek.render --sheet`
 
 Die Prüfung in `turkmek/content.py` meckert, wenn ein Wort kein Icon hat, ein
 Icon kein Wort, oder eine `id` doppelt bzw. nicht ASCII ist. Die Tests prüfen
-zusätzlich, dass jede Karte auf die 100×100-Fläche passt und dass in `gags.py`
-nur bekannte Posen und Requisiten referenziert werden.
+zusätzlich, dass jede Karte auf die 100×100-Fläche passt, dass jedes Wort
+entweder eine Szene oder einen bewussten Katzenverzicht hat, und dass in
+`gags.py` nur bekannte Posen, Accessoires und Requisiten referenziert werden.
 
 ## Struktur
 
@@ -174,8 +198,8 @@ turkmek/svg.py          Szene → SVG
 turkmek/raster.py       Szene → PNG (Pillow, 4× Supersampling)
 turkmek/card.py         Papierkarte mit Körnung, schiefem Rahmen, Gebrauchsspuren
 turkmek/icons.py        die 98 Zeichenrezepte
-turkmek/mascot.py       die Katze in sechs Posen plus Accessoires
-turkmek/gags.py         Wort → Katzen-Auftritt
+turkmek/mascot.py       die Katze in vielen Posen plus Accessoires und Requisiten
+turkmek/gags.py         Wort → Katzen-Auftritt (Anker, Pose, Requisit)
 turkmek/content.py      Laden und Prüfen der Wortliste
 turkmek/render.py       Render-CLI
 turkmek/config.py       .env, Zeitzone, Slots, Pfade
@@ -203,7 +227,9 @@ pytest
 Abgedeckt: SRS-Intervalle, Kartenauswahl, Idempotenz des Versands (der Tick darf
 nie zweimal dieselbe Karte schicken), Caption- und Button-Format, Wortliste und
 Icons, Determinismus von Jitter und Wobble, ob jede Karte auf die Zeichenfläche
-passt, und ob `gags.py` nur bekannte Katzen-Posen referenziert.
+passt, ob jedes Wort entweder eine Szene oder einen bewussten Katzenverzicht
+hat, und ob `gags.py` nur bekannte Posen, Accessoires und Requisiten
+referenziert.
 
 ## Nächste Schritte
 

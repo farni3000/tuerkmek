@@ -28,18 +28,23 @@ ICON_FILL = 64.0
 ICON_CENTER = (42.0, 44.0)
 # Bei Änderungen an Karte/Rahmen/Gebrauchsspuren hochzählen, damit der
 # Manifest-Hash alte Karten als veraltet erkennt.
-STYLE_VERSION = 2
+STYLE_VERSION = 3
 
 
 def build_scene(word, jitter=JITTER):
-    shapes = icons.ICONS[word["id"]]()
-    shapes = scene.jitter_shapes(shapes, seed=word["id"], amount=jitter)
-    shapes = scene.fit_shapes(shapes, size=ICON_FILL, center=ICON_CENTER)
+    icon = icons.ICONS[word["id"]]()
+    icon = scene.jitter_shapes(icon, seed=word["id"], amount=jitter)
+    icon = scene.fit_shapes(icon, size=ICON_FILL, center=ICON_CENTER)
 
     gag = gags.for_word(word)
-    shapes += mascot.cat(gag.pose, gag.x, gag.y, gag.s,
+    if gag is None:
+        shapes = icon + mascot.paw_prints(seed=word["id"])
+    else:
+        x, y, s, target = gags.resolve(gag, scene.bounds(icon))
+        cat = mascot.cat(gag.pose, x, y, s, flip=gag.flip, target=target,
                          accessory=gag.accessory, item=gag.item,
                          effect=gag.effect)
+        shapes = cat + icon if gag.layer == "back" else icon + cat
 
     shapes = scene.wobble_shapes(shapes, seed=word["id"])
     return scene.misregister_shapes(shapes, seed=word["id"])

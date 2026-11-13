@@ -151,6 +151,24 @@ def wobble_shapes(shapes, seed, amount=0.3, segments=4):
     return out
 
 
+def bounds(shapes):
+    """Bounding-Box einer Szene als (x0, y0, x1, y1)."""
+    xs = [p[0] for s in shapes for p in s.points]
+    ys = [p[1] for s in shapes for p in s.points]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def mirror_shapes(shapes, cx):
+    """Spiegelt eine Szene horizontal um `cx`."""
+    out = []
+    for s in shapes:
+        pts = [(2 * cx - x, y) for x, y in s.points]
+        out.append(Shape(pts, closed=s.closed, fill=s.fill,
+                         stroke=s.stroke, width=s.width, jitter=s.jitter,
+                         fill_offset=(-s.fill_offset[0], s.fill_offset[1])))
+    return out
+
+
 def _overshoot(inside, end, distance):
     dx, dy = end[0] - inside[0], end[1] - inside[1]
     length = math.hypot(dx, dy) or 1.0

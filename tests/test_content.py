@@ -78,13 +78,39 @@ def test_full_card_fits_on_canvas(word):
             assert 0.0 <= y <= 100.0
 
 
+def test_every_word_has_scene_or_is_deliberately_empty():
+    ids = {w["id"] for w in WORDS}
+    assert set(gags.SCENES) | gags.NO_CAT == ids
+    assert not (set(gags.SCENES) & gags.NO_CAT)
+
+
+def test_cat_is_on_about_ninety_percent_of_cards():
+    with_cat = sum(1 for w in WORDS if gags.for_word(w) is not None)
+    assert 0.85 <= with_cat / len(WORDS) <= 0.95
+
+
 def test_gags_reference_known_parts():
     for word in WORDS:
         gag = gags.for_word(word)
+        if gag is None:
+            continue
         assert gag.pose in mascot._POSES
+        assert gag.layer in {"front", "back"}
         if gag.accessory:
             assert gag.accessory in mascot._ACCESSORIES
         if gag.item:
             assert gag.item in mascot._ITEMS
         if gag.effect:
             assert gag.effect in mascot._EFFECTS
+        if gag.target:
+            assert all(0.0 <= v <= 1.0 for v in gag.target)
+
+
+def test_paw_prints_stay_on_canvas():
+    for word in WORDS:
+        if gags.for_word(word) is not None:
+            continue
+        for shape in mascot.paw_prints(seed=word["id"]):
+            for x, y in shape.points:
+                assert 0.0 <= x <= 100.0
+                assert 0.0 <= y <= 100.0
