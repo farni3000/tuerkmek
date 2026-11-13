@@ -34,3 +34,22 @@ def pick(store, now, day, max_new=MAX_NEW_PER_DAY, exclude=()):
             return Pick(row["item_id"], "extra")
 
     return None
+
+
+def pick_bit(store, now, exclude=()):
+    """Das nächste Grammatik-Bit: fällig → neu → am längsten nicht gesehen."""
+    skip = set(exclude)
+
+    for row in store.due_bits(now):
+        if row["bit_id"] not in skip:
+            return row["bit_id"]
+
+    for row in store.new_bits(now):
+        if row["bit_id"] not in skip:
+            return row["bit_id"]
+
+    for row in store.fallback_bits():
+        if row["bit_id"] not in skip:
+            return row["bit_id"]
+
+    return None

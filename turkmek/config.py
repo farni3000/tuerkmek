@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 CARDS_DIR = ROOT / "assets" / "cards"
+BITS_DIR = ROOT / "assets" / "bits"
 DEFAULT_SLOTS = "08:30,13:00,20:00"
 
 
@@ -56,6 +57,7 @@ class Config:
     slot_window: int
     db_path: Path
     cards_dir: Path
+    bits_dir: Path
     log_path: Path
     seed_ids: set
 
@@ -82,6 +84,7 @@ def load_config():
         slot_window=int(os.environ.get("TURKMEK_SLOT_WINDOW", "15")),
         db_path=DATA_DIR / "turkmek.db",
         cards_dir=CARDS_DIR,
+        bits_dir=BITS_DIR,
         log_path=DATA_DIR / "turkmek.log",
         seed_ids=parse_ids(os.environ.get("TELEGRAM_ALLOWED_IDS", "")),
     )

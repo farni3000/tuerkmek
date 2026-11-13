@@ -1,0 +1,143 @@
+# Türkmek – Grammatik-Bits (A2/B1)
+#
+# id        ASCII-Kennung (auch für den Fortschritt in der Datenbank)
+# icon      Motiv aus turkmek/bit_icons.py
+# title     Überschrift, türkisch · deutsch
+# text      eine kurze Regel – mehr passt nicht in eine Nudge
+# example   Beispielsatz türkisch + deutsch
+# question  Frage zum Quiz, türkisch + deutsch
+# options   2 bis 4 Antworten (kurz halten)
+# answer    Index der richtigen Antwort (0-basiert)
+#
+# Die Caption wird beim Laden auf Länge geprüft. Lieber ein Bit zu knapp
+# formulieren als die tägliche Nachricht sprengen.
+
+- id: akkusativ
+  icon: akkusativ
+  title: Belirtme · Akkusativ
+  text: "Nesneye -ı/-i/-u/-ü gelir: kapı → kapıyı."
+  example:
+    tr: Kapıyı açıyorum.
+    de: Ich öffne die Tür.
+  question:
+    tr: Doğru biçim hangisi?
+    de: Welche Form stimmt?
+  options: [kapıyı, kapıya, kapıda]
+  answer: 0
+
+- id: plural
+  icon: plural
+  title: Çoğul · Plural
+  text: "Çoğul eki -lar/-ler: kitap → kitaplar."
+  example:
+    tr: Kitaplar masada.
+    de: Die Bücher sind auf dem Tisch.
+  question:
+    tr: Kitabın çoğulu hangisi?
+    de: Wie lautet der Plural von kitap?
+  options: [kitap, kitaplar, kitaplık]
+  answer: 1
+
+- id: lokativ
+  icon: lokativ
+  title: Bulunma · Lokativ
+  text: "Nerede? -da/-de/-ta/-te: masa → masada."
+  example:
+    tr: Kitap masada.
+    de: Das Buch ist auf dem Tisch.
+  question:
+    tr: Kitap nerede?
+    de: Wo ist das Buch?
+  options: [masada, masaya, masadan]
+  answer: 0
+
+- id: vokalharmonie
+  icon: vokal
+  title: Ünlü uyumu · Vokalharmonie
+  text: "Son ünlüye göre: ev → evde, okul → okulda."
+  example:
+    tr: Evdeyim.
+    de: Ich bin zu Hause.
+  question:
+    tr: Okul + -da nasıl yazılır?
+    de: Wie heißt es richtig?
+  options: [okulda, okulde, okuldan]
+  answer: 0
+
+- id: frage
+  icon: frage
+  title: Soru · Frage
+  text: "Soru eki mı/mi/mu/mü ayrı yazılır: geliyor musun?"
+  example:
+    tr: Çay içiyor musun?
+    de: Trinkst du Tee?
+  question:
+    tr: Doğru yazım hangisi?
+    de: Welche Schreibweise stimmt?
+  options: [içiyor musun, içiyormusun, içiyor mu sun]
+  answer: 0
+
+- id: possessiv
+  icon: besitz
+  title: İyelik · Possessiv
+  text: "Benim kitabım, senin kitabın: -ım/-in/-ı."
+  example:
+    tr: Bu benim kitabım.
+    de: Das ist mein Buch.
+  question:
+    tr: Benim kitap nasıl olur?
+    de: Wie sagt man „mein Buch“?
+  options: [kitabım, kitapım, kitabın]
+  answer: 0
+
+- id: praesens
+  icon: gegenwart
+  title: Şimdiki zaman · Präsens
+  text: "-yor: gel- → geliyorum, iç- → içiyorum."
+  example:
+    tr: Şimdi çay içiyorum.
+    de: Ich trinke gerade Tee.
+  question:
+    tr: Ben gel- nasıl olur?
+    de: Wie sagt man „ich komme“?
+  options: [geliyorum, geliyorsun, geliyor]
+  answer: 0
+
+- id: vergangenheit
+  icon: vergangenheit
+  title: Geçmiş zaman · Vergangenheit
+  text: "-dı/-di: gel- → geldim, iç- → içtim."
+  example:
+    tr: Dün geldim.
+    de: Ich bin gestern gekommen.
+  question:
+    tr: Ben dün gel- nasıl olur?
+    de: Wie sagt man „ich kam gestern“?
+  options: [geldim, geliyorum, gelirim]
+  answer: 0
+
+- id: instrumental
+  icon: instrumental
+  title: Araç · Instrumental
+  text: "-la/-le oder ile: araba → arabayla."
+  example:
+    tr: Okula arabayla gidiyorum.
+    de: Ich fahre mit dem Auto zur Schule.
+  question:
+    tr: araba + ile nasıl olur?
+    de: Wie sagt man „mit dem Auto“?
+  options: [arabayla, arabaile, arabada]
+  answer: 0
+
+- id: var_yok
+  icon: var_yok
+  title: Var · Yok
+  text: "Var = es gibt, yok = gibt es nicht: masada kitap var."
+  example:
+    tr: Süt var mı?
+    de: Gibt es Milch?
+  question:
+    tr: „Es gibt kein Wasser“ nasıl?
+    de: Wie sagt man „Es gibt kein Wasser“?
+  options: ["Su yok.", "Su var.", "Su yok mu?"]
+  answer: 0

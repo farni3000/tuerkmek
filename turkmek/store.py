@@ -35,6 +35,18 @@ CREATE TABLE IF NOT EXISTS reviews (
     last_seen_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS bit_reviews (
+    bit_id       TEXT PRIMARY KEY,
+    due_at       TEXT NOT NULL,
+    interval_days REAL NOT NULL DEFAULT 0,
+    ease         REAL NOT NULL DEFAULT 2.5,
+    lapses       INTEGER NOT NULL DEFAULT 0,
+    reps         INTEGER NOT NULL DEFAULT 0,
+    last_result  TEXT,
+    last_seen_at TEXT,
+    retired_at   TEXT
+);
+
 CREATE TABLE IF NOT EXISTS deliveries (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     item_id    TEXT NOT NULL,
@@ -104,6 +116,18 @@ class Store:
         self.conn.commit()
         return added
 
+    def sync_bits(self, ids, now):
+        """Legt fehlende Grammatik-Bits an. Alter Zustand bleibt stehen."""
+        added = 0
+        for bit_id in ids:
+            cur = self.conn.execute(
+                "INSERT OR IGNORE INTO bit_reviews(bit_id, due_at) VALUES(?, ?)",
+                (bit_id, ts(now)),
+            )
+            added += cur.rowcount
+        self.conn.commit()
+        return added
+
     # ------------------------------------------------------------ Auswahl --
 
     def due_items(self, now, limit=50):
@@ -130,9 +154,35 @@ class Store:
             (limit,),
         ).fetchall()
 
+    def due_bits(self, now, limit=50):
+        return self.conn.execute(
+            "SELECT bit_id, due_at FROM bit_reviews "
+            "WHERE retired_at IS NULL AND last_seen_at IS NOT NULL "
+            "AND due_at <= ? ORDER BY due_at LIMIT ?",
+            (ts(now), limit),
+        ).fetchall()
+
+    def new_bits(self, now, limit=50):
+        return self.conn.execute(
+            "SELECT bit_id, due_at FROM bit_reviews "
+            "WHERE retired_at IS NULL AND last_seen_at IS NULL "
+            "AND due_at <= ? ORDER BY due_at LIMIT ?",
+            (ts(now), limit),
+        ).fetchall()
+
+    def fallback_bits(self, limit=50):
+        """Alle aktiven Bits, die am längsten nicht dran waren."""
+        return self.conn.execute(
+            "SELECT bit_id FROM bit_reviews "
+            "WHERE retired_at IS NULL "
+            "ORDER BY COALESCE(last_seen_at, '') ASC, bit_id LIMIT ?",
+            (limit,),
+        ).fetchall()
+
     def seen_today(self, day):
         rows = self.conn.execute(
-            "SELECT item_id FROM deliveries WHERE local_date = ?",
+            "SELECT item_id FROM deliveries "
+            "WHERE local_date = ? AND kind != 'bit'",
             (day.isoformat(),),
         ).fetchall()
         return {r["item_id"] for r in rows}
@@ -148,6 +198,11 @@ class Store:
     def review_of(self, item_id):
         return self.conn.execute(
             "SELECT * FROM reviews WHERE item_id = ?", (item_id,)
+        ).fetchone()
+
+    def bit_review_of(self, bit_id):
+        return self.conn.execute(
+            "SELECT * FROM bit_reviews WHERE bit_id = ?", (bit_id,)
         ).fetchone()
 
     # ----------------------------------------------------------- Versand ---
@@ -185,6 +240,23 @@ class Store:
         )
 
         row = self.delivery_by_id(delivery_id)
+        if row and row["kind"] == "bit":
+            review = self.bit_review_of(row["item_id"])
+            if review and review["last_seen_at"] is None:
+                due = ts(now + timedelta(days=1))
+                self.conn.execute(
+                    "UPDATE bit_reviews SET last_seen_at = ?, due_at = ? "
+                    "WHERE bit_id = ?",
+                    (ts(now), due, row["item_id"]),
+                )
+            elif review:
+                self.conn.execute(
+                    "UPDATE bit_reviews SET last_seen_at = ? WHERE bit_id = ?",
+                    (ts(now), row["item_id"]),
+                )
+            self.conn.commit()
+            return
+
         review = self.review_of(row["item_id"]) if row else None
         if review and review["last_seen_at"] is None:
             # Erste Begegnung: morgen wieder.
@@ -207,6 +279,30 @@ class Store:
             (delivery_id,),
         )
         self.conn.commit()
+
+    def retire_bit(self, delivery_id, now):
+        """Nimmt ein Bit dauerhaft aus der Auswahl.
+
+        Das ist eine Präferenz, keine Quizantwort – deshalb gilt hier bewusst
+        keine 24-Stunden-Grenze. Ein alter „nicht mehr zeigen“-Tap soll
+        trotzdem wirken.
+        """
+        delivery = self.delivery_by_id(delivery_id)
+        if delivery is None or delivery["kind"] != "bit":
+            return None, "unknown"
+
+        review = self.bit_review_of(delivery["item_id"])
+        if review is None:
+            return delivery["item_id"], "unknown"
+        if review["retired_at"]:
+            return delivery["item_id"], "duplicate"
+
+        self.conn.execute(
+            "UPDATE bit_reviews SET retired_at = ? WHERE bit_id = ?",
+            (ts(now), delivery["item_id"]),
+        )
+        self.conn.commit()
+        return delivery["item_id"], "ok"
 
     # --------------------------------------------------------- Antworten ---
 
@@ -270,6 +366,65 @@ class Store:
             )
         return delivery["item_id"], "ok"
 
+    def answer_bit(self, delivery_id, result, now, max_age=MAX_ANSWER_AGE):
+        """Verarbeitet eine Quizantwort auf ein Grammatik-Bit.
+
+        Gleiche Strenge wie bei Wörtern: Duplikate und alte Taps ändern den
+        Plan nicht. Ein bereits abgeschaltetes Bit bleibt abgeschaltet.
+        """
+        delivery = self.delivery_by_id(delivery_id)
+        if delivery is None or delivery["kind"] != "bit":
+            return None, "unknown"
+
+        review = self.bit_review_of(delivery["item_id"])
+        if review is None:
+            return delivery["item_id"], "unknown"
+        if review["retired_at"]:
+            return delivery["item_id"], "duplicate"
+
+        done = self.conn.execute(
+            "SELECT 1 FROM answers WHERE delivery_id = ?", (delivery_id,)
+        ).fetchone()
+        if done:
+            return delivery["item_id"], "duplicate"
+
+        if max_age is not None:
+            sent_at = datetime.fromisoformat(delivery["sent_at"])
+            if now - sent_at > max_age:
+                return delivery["item_id"], "stale"
+
+        with self.conn:
+            cur = self.conn.execute(
+                "INSERT OR IGNORE INTO answers(delivery_id, result, answered_at) "
+                "VALUES(?, ?, ?)",
+                (delivery_id, result, ts(now)),
+            )
+            if not cur.rowcount:
+                return delivery["item_id"], "duplicate"
+
+            state = srs.apply(
+                result,
+                review["reps"],
+                review["interval_days"],
+                review["ease"],
+                review["lapses"],
+            )
+
+            self.conn.execute(
+                "UPDATE bit_reviews SET reps = ?, interval_days = ?, ease = ?, "
+                "lapses = ?, last_result = ?, due_at = ? WHERE bit_id = ?",
+                (
+                    state["reps"],
+                    state["interval"],
+                    state["ease"],
+                    state["lapses"],
+                    result,
+                    ts(now + timedelta(days=state["interval"])),
+                    delivery["item_id"],
+                ),
+            )
+        return delivery["item_id"], "ok"
+
     # ------------------------------------------------------------ Statistik --
 
     def stats(self, today):
@@ -279,10 +434,14 @@ class Store:
             (ts(today),),
         ).fetchone()["n"]
         answered = self.conn.execute(
-            "SELECT COUNT(*) AS n FROM answers"
+            "SELECT COUNT(*) AS n FROM answers a "
+            "JOIN deliveries d ON d.id = a.delivery_id "
+            "WHERE d.kind != 'bit'"
         ).fetchone()["n"]
         good = self.conn.execute(
-            "SELECT COUNT(*) AS n FROM answers WHERE result = 'y'"
+            "SELECT COUNT(*) AS n FROM answers a "
+            "JOIN deliveries d ON d.id = a.delivery_id "
+            "WHERE d.kind != 'bit' AND a.result = 'y'"
         ).fetchone()["n"]
 
         return {
@@ -297,7 +456,8 @@ class Store:
     def streak(self, today):
         rows = self.conn.execute(
             "SELECT DISTINCT d.local_date AS day FROM answers a "
-            "JOIN deliveries d ON d.id = a.delivery_id"
+            "JOIN deliveries d ON d.id = a.delivery_id "
+            "WHERE d.kind != 'bit'"
         ).fetchall()
         days = {r["day"] for r in rows}
 

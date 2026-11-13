@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import mimetypes
 from pathlib import Path
 
 import httpx
@@ -79,7 +80,8 @@ class Telegram:
 
         # Bytes statt Dateihandle, damit ein Retry nicht auf einem
         # geschlossenen Handle landet.
-        files = {"photo": (path.name, path.read_bytes(), "image/jpeg")}
+        mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+        files = {"photo": (path.name, path.read_bytes(), mime)}
         return await self._call("sendPhoto", data=data, files=files)
 
     async def send_message(self, chat_id, text, reply_markup=None):

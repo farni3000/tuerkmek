@@ -1,14 +1,16 @@
 # Türkmek
 
 Nudging-App zum Türkischlernen. Dreimal am Tag kommt eine Karte per Telegram:
-Bild, Wort, Beispielsatz. Zwei Buttons, ein Tap – daraus lernt ein
+Bild, Wort, Beispielsatz. Einmal am Tag kommt zusätzlich ein kleines
+Grammatik-Bit mit Quiz. Zwei Buttons, ein Tap – daraus lernt ein
 Spaced-Repetition-Algorithmus, was morgen wieder dran ist.
 
 Der Name ist ein Wortspiel: `türk` plus die türkische Infinitivendung `-mek`,
 wie in `yürümek` (gehen) oder `gülmek` (lachen) – ein Verb, das es nicht gibt.
 
 **Stand:** 98 A1-Wörter (50 Nomen, 20 Verben, 12 Adjektive, 6 Farben,
-10 Alltagswörter), Karten-Pipeline und Telegram-Bot laufen.
+10 Alltagswörter), 10 Grammatik-Bits (A2/B1), Karten-Pipeline und
+Telegram-Bot laufen.
 
 ## Setup
 
@@ -85,6 +87,34 @@ zu spät kommt, ist keine Nudge mehr.
 Die Wiederholung ist **tagesgranular** (1 → 3 → ×2,5 → …), nicht wie Anki mit
 Minutenstufen: bei drei Nudges am Tag wäre „in 10 Minuten nochmal“ schlicht
 nicht zustellbar.
+
+## Grammatik-Bits
+
+Einmal am Tag, nach der zweiten Karte, kommt ein Bit: eine kleine Papier-Kachel
+mit gezeichnetem Motiv, eine Regel in zwei, drei Zeilen und eine Quizfrage mit
+zwei bis vier Antworten. Das Niveau ist A2/B1 – bewusst über der A1-Wortliste,
+aber ohne Expertenkram wie `-mış` oder Passivkonstruktionen.
+
+```
+Belirtme · Akkusativ
+Nesneye -ı/-i/-u/-ü gelir: kapı → kapıyı.
+
+Kapıyı açıyorum.
+Ich öffne die Tür.
+
+Doğru biçim hangisi? · Welche Form stimmt?
+[ kapıyı ]  [ kapıya ]  [ kapıda ]
+[ ✅ Anladım · nicht mehr zeigen ]
+```
+
+Das Bit hat ein eigenes, tagesgranulares SRS. Eine richtige Quizantwort heißt
+aber nicht automatisch „verstanden“: Nur `Anladım · nicht mehr zeigen` nimmt
+das Bit dauerhaft aus der Auswahl. Der Tap wirkt auch nach dem Quiz und auch
+bei einer älteren Nachricht. Ist alles abgeschaltet, kommt einfach kein Bit
+mehr.
+
+Fehlt eine Karte im Slot, kommt das Bit trotzdem; umgekehrt blockiert ein
+Bit-Fehler nie die Karte. Pause und Wochenende gelten für beides.
 
 ## Zweisprachigkeit
 
@@ -174,6 +204,7 @@ sichtbar.
 python -m turkmek.render              # alles, was fehlt oder veraltet ist
 python -m turkmek.render --all        # alles neu
 python -m turkmek.render --only kapi  # nur ein Wort
+python -m turkmek.render --bits       # nur die Grammatik-Bit-Icons
 python -m turkmek.render --sheet      # Kontaktabzug nach assets/sheet.png
 python -m turkmek.render --jitter 0.03  # unordentlicher zeichnen
 ```
@@ -196,35 +227,50 @@ zusätzlich, dass jede Karte auf die 100×100-Fläche passt, dass jedes Wort
 entweder eine Szene oder einen bewussten Katzenverzicht hat, und dass in
 `gags.py` nur bekannte Posen, Accessoires und Requisiten referenziert werden.
 
+## Ein Grammatik-Bit hinzufügen
+
+1. Eintrag in `content/grammar.yaml`: `id`, `icon`, `title`, `text`, `example`,
+   `question`, `options`, `answer`. Die Erklärung bleibt kurz; der Loader
+   begrenzt die komplette Caption auf `MAX_CAPTION` Zeichen.
+2. Falls das Motiv neu ist: Funktion in `turkmek/bit_icons.py` schreiben und in
+   `BIT_ICONS` eintragen. Mehrere Bits dürfen dasselbe Motiv verwenden.
+3. `python -m turkmek.render --bits`
+
+Die Prüfung in `turkmek/grammar.py` meckert bei fehlenden Feldern, unbekannten
+Icons, doppelten Antworten, ungültigem Antwortindex oder zu langer Caption.
+
 ## Struktur
 
 ```
 content/words.yaml      A1-Wortliste (98 Wörter, fünf Wortarten)
+content/grammar.yaml    Grammatik-Bits (A2/B1)
 turkmek/geometry.py     Punkte für Kreis, Rechteck, Stern, Bézier, Mondsichel
 turkmek/scene.py        Formen, Jitter, Wobble, Füllungsversatz, Einpassen
 turkmek/svg.py          Szene → SVG
 turkmek/raster.py       Szene → PNG (Pillow, 4× Supersampling)
 turkmek/card.py         Papierkarte mit Körnung, schiefem Rahmen, Gebrauchsspuren
 turkmek/icons.py        die 98 Zeichenrezepte
+turkmek/bit_icons.py    die zehn kleinen Grammatik-Motive
 turkmek/mascot.py       die Katze in vielen Posen plus Accessoires und Requisiten
 turkmek/gags.py         Wort → Katzen-Auftritt (Anker, Pose, Requisit)
 turkmek/content.py      Laden und Prüfen der Wortliste
+turkmek/grammar.py      Laden, Quiz, Callback und Caption der Bits
 turkmek/render.py       Render-CLI
 turkmek/config.py       .env, Zeitzone, Slots, Pfade
-turkmek/store.py        SQLite: Reviews, Sendungen, Antworten
+turkmek/store.py        SQLite: Reviews, Sendungen, Antworten, Bit-Zustand
 turkmek/srs.py          Spaced Repetition
-turkmek/planner.py      Kartenauswahl
+turkmek/planner.py      Karten- und Bit-Auswahl
 turkmek/cards.py        Caption und Inline-Buttons
 turkmek/telegram.py     API-Client (Long Polling)
 turkmek/bot.py          Polling, Scheduler, Kommandos
 turkmek/send.py         Einzelversand pro Aufruf (soft)
 turkmek/cli.py          Zustand von der Kommandozeile
-assets/                 generierte Icons und Karten (eingecheckt)
+assets/                 generierte Icons, Karten und Bit-Kacheln (eingecheckt)
 data/                   SQLite und Log (nicht eingecheckt)
 ```
 
 Icons und Karten liegen im Repo, weil sie Teil des Inhalts sind. Eine Karte ist
-~75 KB.
+~75 KB, eine Bit-Kachel ~15 KB.
 
 ## Tests
 
@@ -233,11 +279,12 @@ pytest
 ```
 
 Abgedeckt: SRS-Intervalle, Kartenauswahl, Idempotenz des Versands (der Tick darf
-nie zweimal dieselbe Karte schicken), Caption- und Button-Format, Wortliste und
-Icons, Determinismus von Jitter und Wobble, ob jede Karte auf die Zeichenfläche
-passt, ob jedes Wort entweder eine Szene oder einen bewussten Katzenverzicht
-hat, und ob `gags.py` nur bekannte Posen, Accessoires und Requisiten
-referenziert.
+nie zweimal dieselbe Karte oder dasselbe Bit schicken), Caption- und
+Button-Format, Wortliste und Icons, Grammatik-Bits samt Quiz und
+„nicht mehr zeigen“, Determinismus von Jitter und Wobble, ob jede Karte und
+jedes Bit-Icon auf die Zeichenfläche passt, ob jedes Wort entweder eine Szene
+oder einen bewussten Katzenverzicht hat, und ob `gags.py` nur bekannte Posen,
+Accessoires und Requisiten referenziert.
 
 ## Nächste Schritte
 
