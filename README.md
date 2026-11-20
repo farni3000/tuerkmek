@@ -23,7 +23,7 @@ cp .env.example .env      # Token von @BotFather eintragen
 python -m turkmek.bot
 ```
 
-Alternativ startet `./start.sh` den Bot und legt die venv bei Bedarf an.
+Alternativ startet `./run.sh` den Bot und legt die venv bei Bedarf an.
 
 Danach im Chat einmal `/start` schicken. Der erste Nutzer wird automatisch
 freigeschaltet, alle weiteren ignoriert der Bot.
