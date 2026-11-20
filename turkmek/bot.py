@@ -312,6 +312,7 @@ async def handle_message(tg, store, cfg, words, bits, message):
         await tg.send_message(
             chat_id,
             f"🔥 Seri · Serie: {stats['streak']} Tage\n"
+            f"🎓 Gelernt: {stats['retired']}\n"
             f"📚 Fällig: {stats['due']} von {stats['total']}\n"
             f"✅ Doğru: {stats['accuracy'] * 100:.0f} % "
             f"({stats['answered']} Antworten)",

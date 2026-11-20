@@ -89,6 +89,12 @@ Die Wiederholung ist **tagesgranular** (1 → 3 → ×2,5 → …), nicht wie An
 Minutenstufen: bei drei Nudges am Tag wäre „in 10 Minuten nochmal“ schlicht
 nicht zustellbar.
 
+Zwei richtige Antworten **in Folge** beenden die Wiederholung: Das Wort gilt
+als gelernt, wird mit `retired_at` in der Tabelle `reviews` markiert und kommt
+danach nie wieder – auch nicht über den Fallback. Eine falsche Antwort setzt
+den Zähler zurück. `python -m turkmek.cli reset <id>` holt ein Wort bei Bedarf
+zurück in den Umlauf.
+
 ## Grammatik-Bits
 
 Einmal am Tag, nach der zweiten Karte, kommt ein Bit: eine kleine Papier-Kachel

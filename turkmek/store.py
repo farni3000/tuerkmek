@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS reviews (
     lapses       INTEGER NOT NULL DEFAULT 0,
     reps         INTEGER NOT NULL DEFAULT 0,
     last_result  TEXT,
-    last_seen_at TEXT
+    last_seen_at TEXT,
+    retired_at   TEXT
 );
 
 CREATE TABLE IF NOT EXISTS bit_reviews (
@@ -84,6 +85,7 @@ class Store:
         self.conn = sqlite3.connect(str(path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        self._migrate()
         # Der Bot und ein manueller Aufruf können gleichzeitig schreiben.
         # WAL kann fehlschlagen, wenn ein alter Prozess die Datei noch hält –
         # dann bleibt es beim Standardmodus, was auch funktioniert.
@@ -92,6 +94,24 @@ class Store:
             self.conn.execute("PRAGMA journal_mode=WAL")
         except sqlite3.OperationalError:
             pass
+        self.conn.commit()
+
+    def _migrate(self):
+        """Ergänzt Spalten, die ältere Datenbanken noch nicht haben.
+
+        Wörter, die schon zweimal in Folge gekannt wurden, gehen dabei direkt
+        in den Ruhestand – sonst würden sie erst ab der nächsten richtigen
+        Antwort verschwinden.
+        """
+        columns = {
+            row["name"] for row in self.conn.execute("PRAGMA table_info(reviews)")
+        }
+        if "retired_at" not in columns:
+            self.conn.execute("ALTER TABLE reviews ADD COLUMN retired_at TEXT")
+            self.conn.execute(
+                "UPDATE reviews SET retired_at = ? WHERE reps >= 2",
+                (ts(datetime.now()),),
+            )
         self.conn.commit()
 
     def close(self):
@@ -133,7 +153,8 @@ class Store:
     def due_items(self, now, limit=50):
         return self.conn.execute(
             "SELECT item_id, due_at FROM reviews "
-            "WHERE last_seen_at IS NOT NULL AND due_at <= ? "
+            "WHERE retired_at IS NULL AND last_seen_at IS NOT NULL "
+            "AND due_at <= ? "
             "ORDER BY due_at LIMIT ?",
             (ts(now), limit),
         ).fetchall()
@@ -141,7 +162,8 @@ class Store:
     def new_items(self, now, limit=50):
         return self.conn.execute(
             "SELECT item_id, due_at FROM reviews "
-            "WHERE last_seen_at IS NULL AND due_at <= ? "
+            "WHERE retired_at IS NULL AND last_seen_at IS NULL "
+            "AND due_at <= ? "
             "ORDER BY due_at LIMIT ?",
             (ts(now), limit),
         ).fetchall()
@@ -150,6 +172,7 @@ class Store:
         """Zuletzt gesehene zuerst – damit kein Slot leer bleibt."""
         return self.conn.execute(
             "SELECT item_id FROM reviews "
+            "WHERE retired_at IS NULL "
             "ORDER BY COALESCE(last_seen_at, '') ASC LIMIT ?",
             (limit,),
         ).fetchall()
@@ -360,9 +383,16 @@ class Store:
                 review["lapses"],
             )
 
+            # Zwei richtige Antworten in Folge: Das Wort gilt als gelernt und
+            # kommt nie wieder. Eine falsche Antwort setzt reps zurück.
+            retired_at = (
+                ts(now) if state["reps"] >= 2 else review["retired_at"]
+            )
+
             self.conn.execute(
                 "UPDATE reviews SET reps = ?, interval_days = ?, ease = ?, "
-                "lapses = ?, last_result = ?, due_at = ? WHERE item_id = ?",
+                "lapses = ?, last_result = ?, due_at = ?, retired_at = ? "
+                "WHERE item_id = ?",
                 (
                     state["reps"],
                     state["interval"],
@@ -370,6 +400,7 @@ class Store:
                     state["lapses"],
                     result,
                     ts(now + timedelta(days=state["interval"])),
+                    retired_at,
                     delivery["item_id"],
                 ),
             )
@@ -437,10 +468,16 @@ class Store:
     # ------------------------------------------------------------ Statistik --
 
     def stats(self, today):
-        total = self.conn.execute("SELECT COUNT(*) AS n FROM reviews").fetchone()["n"]
+        total = self.conn.execute(
+            "SELECT COUNT(*) AS n FROM reviews WHERE retired_at IS NULL"
+        ).fetchone()["n"]
         due = self.conn.execute(
-            "SELECT COUNT(*) AS n FROM reviews WHERE due_at <= ?",
+            "SELECT COUNT(*) AS n FROM reviews "
+            "WHERE retired_at IS NULL AND due_at <= ?",
             (ts(today),),
+        ).fetchone()["n"]
+        retired = self.conn.execute(
+            "SELECT COUNT(*) AS n FROM reviews WHERE retired_at IS NOT NULL"
         ).fetchone()["n"]
         answered = self.conn.execute(
             "SELECT COUNT(*) AS n FROM answers a "
@@ -456,6 +493,7 @@ class Store:
         return {
             "total": total,
             "due": due,
+            "retired": retired,
             "answered": answered,
             "good": good,
             "accuracy": (good / answered) if answered else 0.0,
@@ -508,8 +546,8 @@ class Store:
     def reset(self, item_id):
         self.conn.execute(
             "UPDATE reviews SET due_at = ?, interval_days = 0, ease = 2.5, "
-            "lapses = 0, reps = 0, last_result = NULL, last_seen_at = NULL "
-            "WHERE item_id = ?",
+            "lapses = 0, reps = 0, last_result = NULL, last_seen_at = NULL, "
+            "retired_at = NULL WHERE item_id = ?",
             (ts(datetime.now()), item_id),
         )
         self.conn.commit()

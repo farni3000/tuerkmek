@@ -35,6 +35,7 @@ def cmd_status(cfg, store, words):
     slots = current_slots(store, cfg)
 
     print(f"Wörter        {stats['total']}")
+    print(f"Gelernt       {stats['retired']}")
     print(f"Fällig        {stats['due']}")
     print(f"Serie         {stats['streak']} Tage")
     print(f"Beantwortet   {stats['answered']} "
